@@ -1,0 +1,39 @@
+name: GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Read .env
+        id: mdbook_version
+        run: |
+          . ./.env
+          echo "::set-output name=mdbook_version::${MDBOOK_VERSION}"
+
+      - uses: peaceiris/actions-mdbook@v1
+        with:
+          mdbook-version: '${{ steps.mdbook_version.outputs.mdbook_version }}'
+
+      - run: mdbook build
+      - run: ls -la ./book
+      - run: tree
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3.9.3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./book
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+          cname: 'test-mdbook.peaceiris.com'
